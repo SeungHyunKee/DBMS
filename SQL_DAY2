@@ -1,0 +1,108 @@
+-- 사원정보 테이블에서 이름, 성, 연봉, 이메일을 조회한다
+SELECT FIRST_NAME
+	 , LAST_NAME
+	 , SALARY
+	 , EMAIL
+  FROM EMPLOYEES
+;  
+ -- 지역정보 테이블에서 도시명이 :"SEATTLE"인 지역의 주소와 우편번호를 조회한다
+SELECT STREET_ADDRESS
+	 , POSTAL_CODE
+  FROM LOCATIONS
+ WHERE CITY = 'Seattle'
+;
+
+ -- 모든 사원들의 연봉총합, 최대연봉, 최소연봉, 평균연봉, 사원의수를 조회
+ SELECT SUM(SALARY)
+ 	  , MAX(SALARY)
+ 	  , MIN(SALARY)
+ 	  , AVG(SALARY)
+ 	  , COUNT(EMPLOYEE_ID) --COUNT함수의 파라미터는 PK를 쓰는것이 원칙
+ 	  , MAX(HIRE_DATE) --가장 최근의 입사일자
+ 	  , MIN(HIRE_DATE) --가장 과거의 입사일자
+FROM EMPLOYEES 
+;
+
+--2007년에 입사한 사원의 수와 평균 연봉을 조회
+-- 문자를 날짜로 변경하는 방법 : 
+SELECT '2007-08-08' --날짜형태의 문자
+	  , TO_DATE('2007-08-08', 'YYYY-MM-DD')
+  FROM DUAL -- DUAL : 더미테이블(날짜, 시퀀셜할 번호 등을 조회할 때 사용)
+;
+
+SELECT COUNT(EMPLOYEE_ID)
+	 , AVG(SALARY)
+  FROM EMPLOYEES 
+ WHERE HIRE_DATE >= TO_DATE('2007-01-01', 'YYYY-MM-DD')
+   AND HIRE_DATE <= TO_DATE('2007-12-31', 'YYYY-MM-DD')
+;
+
+--GROUP_BY 이용해보기
+-- 부서별 근무중인 부서번호, 연봉의 합계, 최대연봉, 가장늦게 입사한 날짜, 가장일찍 입사한날짜, 사원의수 조회
+SELECT DEPARTMENT_ID -- ORA-00937: 단일 그룹의 그룹 함수가 아닙니다
+	 , SUM(SALARY)
+	 , MAX(SALARY)
+	 , MAX(HIRE_DATE)
+	 , MIN(HIRE_DATE)
+	 , COUNT(EMPLOYEE_ID)
+  FROM EMPLOYEES 
+;
+
+--해결방법
+SELECT DEPARTMENT_ID -- ORA-00937: 단일 그룹의 그룹 함수가 아닙니다
+	 , SUM(SALARY)
+	 , MAX(SALARY)
+	 , MAX(HIRE_DATE)
+	 , MIN(HIRE_DATE)
+	 , COUNT(EMPLOYEE_ID)
+  FROM EMPLOYEES 
+  GROUP BY DEPARTMENT_ID -- 단일 그룹의 그룹 함수가 아닙니다 에러가 나지 않음
+;
+
+-- "~~별" -> GROUP BY 사용하기!
+
+-- 사원정보에서 "직무 아이디" 별 사원의 수 와 "직무아이디"를 조회한다
+SELECT JOB_ID
+	 , COUNT(EMPLOYEE_ID)
+  FROM EMPLOYEES
+ GROUP BY JOB_ID
+;
+
+-- 사원정보에서 "성"이 같은 사원들의 "수"와 "성"을 조회한다
+SELECT COUNT(EMPLOYEE_ID)
+     , LAST_NAME
+  FROM EMPLOYEES
+ GROUP BY(LAST_NAME)
+ ;
+
+-- 2004년에 입사한 사원들 중, 
+-- '부서 번호별 사원들의 수' 와 평균연봉, 연봉의 총합, 부서번호를 조회한다
+SELECT COUNT(EMPLOYEE_ID)
+	 , AVG(SALARY)
+	 , SUM(SALARY)
+	 , DEPARTMENT_ID
+  FROM EMPLOYEES 
+ WHERE HIRE_DATE >= TO_DATE('2004-01-01', 'YYYY-MM-DD')
+   AND HIRE_DATE <= TO_DATE('2004-12-31', 'YYYY-MM-DD')
+ GROUP BY DEPARTMENT_ID
+;
+
+
+-- 사원정보에서 동일한 '성'이 두명 이상이 있는 사원들만 조회한다
+-- "성"별 사원의 수, "성"
+SELECT COUNT(EMPLOYEE_ID)
+     , LAST_NAME
+  FROM EMPLOYEES
+ GROUP BY LAST_NAME
+HAVING COUNT(EMPLOYEE_ID) > 1
+ ;
+
+
+--사원정보에서 직무아이디 별 사원의 수와 직무아이디를 조회하는데, 
+--사원의 수가 3명 이상인 정보만 조회한다
+SELECT COUNT(EMPLOYEE_ID)
+	 , JOB_ID
+  FROM EMPLOYEES 
+ GROUP BY JOB_ID
+HAVING COUNT(EMPLOYEE_ID) >= 3
+;
