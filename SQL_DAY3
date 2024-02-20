@@ -1,0 +1,115 @@
+--서브쿼리
+
+-- SYB QUERY 작성 팁 : SUB QUERY를 먼저 작성할것! (우리가 알기위해 필요한 코드를 먼저 작성)
+-- 문제 : 부서명 "IT" 부서에서 근무중인 사원들의 정보를 조회 (IT부서의 부서번호를 모르는 상황)
+SELECT *
+FROM EMPLOYEES 
+WHERE DEPARTMENT_ID = (SELECT DEPARTMENT_ID 
+				         FROM DEPARTMENTS 
+ 				 	    WHERE DEPARTMENT_NAME = 'IT')
+;
+
+-- 1. 부서명 "IT" 부서에서 근무중인 사원들의 정보를 조회 (IT부서의 부서번호를 모르는 상황)
+-- 1) IT부서의 부서번호를 찾는다 --> 60
+SELECT DEPARTMENT_ID
+  FROM DEPARTMENTS 
+ WHERE DEPARTMENT_NAME = 'IT'
+  ;
+--2) 60번 부서에서 일을하는 사원들의 정보를 조회한다
+SELECT *
+  FROM EMPLOYEES 
+ WHERE DEPARTMENT_ID = 60
+;
+
+--2.지역번호가 1700인 부서에서 근무중인 사웓들의 모든 정보를 조회(지역번호가 1700인 부서의 번호를 모르는 상황)
+SELECT *
+  FROM EMPLOYEES 
+ WHERE DEPARTMENT_ID IN (SELECT DEPARTMENT_ID 
+					       FROM DEPARTMENTS 
+						  WHERE LOCATION_ID = 1700)
+;
+
+-- 문제3. 145번 사원이 부서장인 부서에서 근무중인 사원들의 모든 정보를 조회하는데, 
+-- 결과에서 145사번은 제외시킨다
+SELECT *
+  FROM EMPLOYEES 
+ WHERE DEPARTMENT_ID = (SELECT DEPARTMENT_ID
+						  FROM DEPARTMENTS 
+						 WHERE MANAGER_ID = 145)						 
+   AND EMPLOYEE_ID != 145
+
+
+   
+   
+-- 문제4 : 직무명이 'Marketing Manager'인 사원의 모든정보를 조회한다
+-- 직무명 : '직무정보' 컬럼에 있음 JOB_TITLE (JOBS)
+-- 사원의모든정보 : 사원(EMPLOYEES)에 있음
+-- 알아야 할 정보 : 
+	--직무명 : 'Marketing Manager'인 직무의 아이디=MK_MAN
+-- 알고싶은 정보 :    
+   --사원의 직무아이디가 MK_MAN인 사원의 모든 정보
+SELECT *
+  FROM EMPLOYEES 
+ WHERE JOB_ID = (SELECT JOB_ID
+ 				   FROM JOBS 
+				  WHERE JOB_TITLE = 'Marketing Manager')
+;
+
+-- 문제5 : 도시명이 'Seattle"인 지역에 존재하는 부서의 모든 정보를 조회
+-- 알아야할 정보 : 도시명이 'Seattle'인 지역번호 (1700)
+-- 알고싶은 정보 : 'Seattle'과 같은 지역의 부서
+-- 어떤값으로 연결되어있는가 : LOCATION_ID
+
+SELECT *
+  FROM DEPARTMENTS 
+ WHERE LOCATION_ID = (SELECT LOCATION_ID
+					    FROM LOCATIONS 
+ 					   WHERE CITY = 'Seattle')
+;
+
+
+-- 문제6. 대륙명이 'Americas'인 국가정보를 모두 조회한다
+-- 알아야할 정보 : 대륙명이 'Americas'인 대륙의 아이디
+-- 알고싶은 정보 : 대륙아이디가 2번인 국가의 정보
+-- 테이블간의 연결(REGION_ID)은 항상 pk--fk로 한다
+
+SELECT *
+FROM COUNTRIES 
+WHERE REGION_ID = (SELECT REGION_ID
+				     FROM REGIONS 
+					WHERE REGION_NAME = 'Americas')
+;
+
+
+-- 문제7. 도시명이 'Seattle'인 지역에서 근무중인 모든 사원들의 정보를 조회한다
+-- 알아야할 정보1. :  도시명이 시에틀인 지역의 지역번호 - 1700
+-- 알아야할 정보2. : 지역번호가 1700번인 부서번호 - 10,30,90,100, 110, 120, 130...
+-- 알고싶은 정보 : 그 부서에서 근무하는 사원들의 번호
+SELECT*
+FROM EMPLOYEES 
+WHERE DEPARTMENT_ID IN (SELECT DEPARTMENT_ID 
+						  FROM DEPARTMENTS 
+						 WHERE LOCATION_ID = (SELECT LOCATION_ID
+											    FROM LOCATIONS 
+						 					   WHERE CITY = 'Seattle'))
+;
+
+
+-- 대륙명이 'Europe'인 국가에서 근무하는 모든 사원들의 정보를 조회
+-- 알아야 할 정보1. : Europe국가의 대륙아이디 : 1
+-- 알아야 할 정보2. : 대륙아이디가 1인 국가아이디 : BE, CH, DE, DK, FR, IT, NL, UK
+-- 알아야 할 정보3. : BE, CH, DE, DK, FR, IT, NL, UK 국가아이디의 지역번호
+-- ...
+-- 알고싶은 정보 : 사원들의 정보
+SELECT *
+ FROM EMPLOYEES 
+ WHERE DEPARTMENT_ID IN (SELECT DEPARTMENT_ID
+					       FROM DEPARTMENTS
+					      WHERE LOCATION_ID IN (SELECT LOCATION_ID
+										   	   FROM LOCATIONS 
+											  WHERE COUNTRY_ID IN (SELECT COUNTRY_ID -- BE, CH, DE, DK, FR, IT, NL, UK
+																	 FROM COUNTRIES 
+																	WHERE REGION_ID = (SELECT REGION_ID --1
+																						 FROM REGIONS 
+																						WHERE REGION_NAME = 'Europe'))))
+;
