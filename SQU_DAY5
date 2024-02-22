@@ -1,0 +1,132 @@
+ -- HR회사에 신규인력이 입사하였다.
+ -- 이름: 장민창
+ -- 성: 장
+ -- 이메일 : MCJANG
+ -- 연락처 : 010-1111-2222
+ -- 입사일 : 현재날짜(오늘)
+ -- 직무아이디 : IT_PROG
+ -- 연봉 : 100000
+ -- 인센티브 : NULL
+ -- 상사의 사원번호 : 100
+ -- 부서번호 : 60 
+-- 위 인력을 EMPLOYEES테이블에 넣어야 한다
+ 
+ -- SYSDATE : 현재날짜와시간 데이터타입으로 바로 넣어줌
+ 
+INSERT INTO EMPLOYEES ( -- 컬럼에 쓰는 순서는 중요하지않지만, 
+  EMPLOYEE_ID
+, FIRST_NAME
+, LAST_NAME
+, EMAIL
+, PHONE_NUMBER
+, HIRE_DATE
+, JOB_ID
+, SALARY
+, COMMISSION_PCT
+, MANAGER_ID
+, DEPARTMENT_ID)
+VALUES ( -- VALUES에 적어주는 순서는 매우 중요함
+  --100--  EMPLOYEE_ID --> PK컬럼이므로 '무결성 제약조건에 위배된다' 에러발생
+  208--  EMPLOYEE_ID --> '208' 로 적어도 숫자로 인식함
+, '민창'--, FIRST_NAME
+, '장'--, LAST_NAME
+, 'MCJANG'--, EMAIL
+, '010-1111-2222'--, PHONE_NUMBER
+, SYSDATE--, HIRE_DATE
+, 'IT_PROG'--, JOB_ID
+, 100000--, SALARY
+, NULL--, COMMISSION_PCT
+, 100--, MANAGER_ID
+, 60)--, DEPARTMENT_ID --FK컬럼이므로, DEPARTMENTS의 DEPARTMENT_ID가 가지고있는 값들만 들어갈수있음
+	 -- (960번 부서를 넣으려고 하면: --ORA-02291 무결성 제약조건이 위배되었습니다. 부모키가 없습니다. 에러 발생 )
+;
+ 
+-- 오라클 특징
+-- Oracle Query Optimizer가 값을 타입에 맞춰서 보정을 해준다
+-- NUMBER type을 써야하지만, 문자타입(ex.'208'(o), 'asd'(x) 을 넣어주면, NUMBER type으로 바꿔줌
+-- 그렇다면, 문자타입 컬럼에 숫자를 집어넣으면 :  Oracle Query Optimizer가 값을 타입에 맞춰서 바꿔줌!
+-- date type에 날짜타입 문자ex)'1234-12-12' 적어도 : Oracle Query Optimizer가 값을 타입에 맞춰서 바꿔줌!
+-- 단, optimizer가 개입을 하면할수록 속도는 떨어질것이므로, 형식에맞게 작성해주기
+
+
+-- INSERT 해보기 예제
+-- HR회사에 신규사업부서가 생겼다.
+-- 부서번호: 300
+-- 부서명 : R&D
+-- 부서장 사원번호 :NULL
+-- 지역번호 : 1700
+INSERT INTO DEPARTMENTS (
+  DEPARTMENT_ID 
+, DEPARTMENT_NAME 
+, MANAGER_ID 
+, LOCATION_ID )
+VALUES(
+  300--DEPARTMENT_ID 
+,'R&D' -- DEPARTMENT_NAME 
+, NULL-- MANAGER_ID 
+, 1700)--LOCATION_ID 
+;
+COMMIT; --> 이 명령어를 수행해줘야 테이블에 위의 INSERT값들이 적용된것
+ROLLBACK; --> 수행했던것을 취소하고싶다는 의미 : 아직 커밋되지않은 데이터만 수행 취소됨
+
+SELECT *
+  FROM DEPARTMENTS d
+;
+
+-- INSERT, UPDATE,DELETE 들은 
+-- TABLE데이터의 영향을 주는 QUERY
+-- 실수로 적용한 쿼리의 실행결과를 테이블로 바로 적용되지 않도록
+--방어해주는 최소한의 방어기제
+
+-- MANUAL TRANSACTION
+-- TRANSACTION : 1) COMMIT, 2) ROLLBACK
+--     COMMIT : INSERT, UPDATE, DELETE쿼리의 결과를 테이블에 적용(영구적)
+--     ROLLBACK : INSERT, UPDATE, DELETE쿼리의 결과를 취소하하는 것
+-- MANUAL TRANSACTION이 적용된 상태에서 INSERT, UPDATE, DELETE수행하면
+----> COMMIT을 하기 전까지는 테이블에 적용되지 않는다
+-- AUTO TRANSACTION 상태에서 INSERT, UPDATE, DELETE수행하면
+----> INSERT, UPDATE, DELETE를 수행하면 즉시 테이블에 적용
+
+
+-- 모든 사원들의 연봉을 10만으로 변경
+UPDATE EMPLOYEES   
+   SET SALARY = 100000
+;
+
+--103번 사원의 연봉을 10만으로 변경 (원래는 9천)
+UPDATE EMPLOYEES 
+   SET SALARY = 100000
+ WHERE EMPLOYEE_ID = 103
+;
+
+-- 103번사원의 연봉을 10만으로 변경하고, 인센티브를 0.9으로 변경한다
+-- 원래연봉 : 9000, 원래인센티브 : NULL
+UPDATE EMPLOYEES    
+   SET SALARY = 100000
+     , COMMISSION_PCT = 0.9
+ WHERE EMPLOYEE_ID = 103
+;
+
+
+ROLLBACK;
+
+SELECT *
+  FROM EMPLOYEES 
+;
+
+
+DELETE   
+  FROM EMPLOYEES 
+ WHERE EMPLOYEE_ID = 207 --참조되는 행이 없기때문에 삭제가능 
+;
+
+COMMIT;
+
+
+DELETE  
+  FROM DEPARTMENTS 
+ WHERE DEPARTMENT_ID = 300
+ ;
+COMMIT;
+
+ 
