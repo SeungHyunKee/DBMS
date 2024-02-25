@@ -1,0 +1,219 @@
+-- 1. 현재 시간을 조회한다.
+SELECT SYSDATE 
+FROM DUAL
+;
+
+-- 2. 현재 시간을 "연-월-일" 포멧으로 조회한다.
+SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+FROM DUAL 
+;
+
+-- 3. 한 시간 전 시간을 "시:분:초" 포멧으로 조회한다.
+SELECT TO_CHAR(SYSDATE -1 / 24 , 'HH-MI-SS') --12시간 기준
+	 , TO_CHAR(SYSDATE -1 / 24 , 'HH24-MI-SS')--24시간 기준
+FROM DUAL 
+;
+
+SELECT SYSDATE --현재 날짜와 시간
+	 , SYSDATE - 1 --하루전의 날짜와 시간
+	 , SYSDATE - 10 --10일전의 날짜와 시간
+	 , ADD_MONTHS(SYSDATE, -1) --한 달 전의 날짜와 시간
+	 , ADD_MONTHS(SYSDATE, -2) --두 달 전의 날짜와 시간
+	 , ADD_MONTHS(SYSDATE, -12) --1년 전의 날짜와 시간(윤달까지 계산해줌)
+	 , ADD_MONTHS(SYSDATE, 2 * -12) --2년전의 날짜와 시간
+	 , SYSDATE + 1 --하루 후의 날짜와 시간
+	 , SYSDATE + 10 --10일 후의 날짜와 시간
+	 , ADD_MONTHS(SYSDATE, 1) --한 달 후의 날짜와 시간
+	 , ADD_MONTHS(SYSDATE, 2) --두 달 후의 날짜와 시간
+	 , ADD_MONTHS(SYSDATE, 12) --1년 후의 날짜와 시간(윤달까지 계산해줌)
+	 , ADD_MONTHS(SYSDATE, 2 * 12) --2년 후의 날짜와 시간
+	 FROM DUAL
+;
+
+SELECT SYSDATE --현재 날짜와 시간을 구해줌
+	 , SYSDATE + 1 / 24-- 한 시간 후의 날짜와 시간 
+	 , SYSDATE + 2 / 24-- 두 시간 후의 날짜와 시간
+	 , SYSDATE + 1 / 24 / 60 -- 1분 후의 날짜와 시간
+	 , SYSDATE + 10 / 24 / 60 -- 10분 후의 날짜와 시간
+	 , SYSDATE + 1 / 24 / 60 / 60 -- 1초 후의 날짜와 시간
+	 , SYSDATE + 30 / 24 / 60 / 60-- 30초 후의 날짜와 시간
+  FROM DUAL
+;
+
+-- 4. EMPLOYEES 테이블의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES
+;  
+
+-- 5. DEPARTMENTS 테이블의 모든 정보를 조회한다.
+SELECT *
+  FROM DEPARTMENTS
+  ;
+
+-- 6. JOBS 테이블의 모든 정보를 조회한다.
+SELECT *
+  FROM JOBS
+  ;
+ 
+-- 7. LOCATIONS 테이블의 모든 정보를 조회한다.
+SELECT *
+  FROM LOCATIONS
+  ;
+ 
+-- 8. COUNTRIES 테이블의 모든 정보를 조회한다.
+SELECT *
+  FROM COUNTRIES 
+  ;
+ 
+-- 9. REGIONS 테이블의 모든 정보를 조회한다.
+SELECT *
+  FROM REGIONS 
+  ;
+ 
+-- 10. JOB_HISTORY 테이블의 모든 정보를 조회한다.
+SELECT *
+  FROM JOB_HISTORY
+  ;
+ 
+-- 11. 90번 부서에서 근무하는 사원들의 모든 정보를 조회한다.
+SELECT *
+  FROM DEPARTMENTS D
+  JOIN EMPLOYEES E
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
+ WHERE D.DEPARTMENT_ID = 90
+ ;
+ 
+-- 12. 90번, 100번 부서에서 근무하는 사원들의 모든 정보를 조회한다.
+SELECT *
+  FROM DEPARTMENTS D
+  JOIN EMPLOYEES E
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
+ WHERE D.DEPARTMENT_ID IN(90, 100)
+ ;
+ 
+-- 13. 100번 상사의 직속 부하직원의 모든 정보를 조회한다. **** 
+SELECT *
+  FROM EMPLOYEES 
+ WHERE MANAGER_ID = 100
+  ;
+  
+
+-- 14. 직무 아이디가 AD_VP 인 사원의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+ WHERE JOB_ID = 'AD_VP'
+ ;
+
+-- 15. 연봉이 7000 이상인 사원의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+  WHERE SALARY >= 7000
+  ;
+ 
+-- 16. 2005년 09월에 입사한 사원들의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+  WHERE HIRE_DATE >= TO_DATE('2005-09-01', 'YYYY-MM-DD')
+  AND HIRE_DATE <= TO_DATE('2005-10-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+  ;
+ 
+-- 17. 111번 사원의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+ WHERE EMPLOYEE_ID = 111
+ ;
+ 
+-- 18. 인센티브를 안받는 사원들의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+ WHERE COMMISSION_PCT IS NULL
+ ;
+ 
+-- 19. 인센티브를 받는 사원들의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+ WHERE COMMISSION_PCT IS NOT NULL
+ ;
+ 
+-- 20. 이름의 첫 글자가 'D' 인 사원들의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+ WHERE FIRST_NAME LIKE 'D%'
+ ;
+ 
+-- 21. 성의 마지막 글자가 'a' 인 사원들의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+ WHERE LAST_NAME LIKE '%a'
+ ;
+ 
+-- 22. 전화번호에 '.124.'이 포함된 사원들의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+ WHERE PHONE_NUMBER LIKE '%.124.%'
+ ;
+ 
+-- 23. 직무 아이디가 'PU_CLERK'인 사원 중 연봉이 3000 이상인 사원들의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+ WHERE JOB_ID = 'PU_CLERK' 
+   AND SALARY >= 3000
+ ;
+ 
+-- 24. 평균 연봉보다 많이 받는 사원들의 사원번호, 이름, 성, 연봉을 조회한다. (SUB QUERY 이용하기)
+-- 모르는것 : 평균연봉
+SELECT EMPLOYEE_ID
+     , FIRST_NAME
+     , LAST_NAME
+     , SALARY   
+  FROM EMPLOYEES 
+ WHERE SALARY > (SELECT AVG(SALARY)
+   						FROM EMPLOYEES)
+;
+ 
+-- 25. 평균 연봉보다 적게 받는 사원들의 사원번호, 연봉, 부서번호를 조회한다.(SUB QUERY 이용하기)
+-- 모르는것 : 적게받는
+SELECT EMPLOYEE_ID
+	 , SALARY
+	 , DEPARTMENT_ID
+ FROM EMPLOYEES
+ WHERE SALARY < (SELECT AVG(SALARY)
+				   FROM EMPLOYEES)
+;
+	
+
+-- 26. 가장 많은 연봉을 받는 사원의 사원번호, 이름, 연봉을 조회한다.
+--모르는것 : 가장많은연봉
+SELECT EMPLOYEE_ID
+     , FIRST_NAME
+     , SALARY
+  FROM EMPLOYEES 
+ WHERE SALARY = (SELECT MAX(SALARY)
+  					FROM EMPLOYEES)
+;
+
+-- 27. 이름이 4글자인 사원의 모든 정보를 조회한다. (LIKE WILD CARD)
+SELECT *
+  FROM EMPLOYEES 
+ WHERE FIRST_NAME LIKE '____'
+;
+
+-- 28. 'SA_REP' 직무인 직원 중 가장 높은 연봉과 가장 낮은 연봉을 조회한다. (집계함수)
+SELECT MAX(SALARY)
+     , MIN(SALARY)
+  FROM EMPLOYEES 
+ WHERE JOB_ID = 'SA_REP'
+;
+
+-- 29. 직원의 입사일자를 '연-월-일' 형태로 조회한다.
+SELECT TO_DATE(HIRE_DATE, 'YYYY-MM-DD')
+  FROM EMPLOYEES
+  ;
+
+-- 30. 가장 늦게 입사한 사원의 모든 정보를 조회한다.(SUB QUERY 이용하기)
+-- 가장 늦게 입사한 사원 : ?
+SELECT *
+  FROM EMPLOYEES 
+ WHERE HIRE_DATE = (SELECT MAX(HIRE_DATE)
+					  FROM EMPLOYEES)
+;
