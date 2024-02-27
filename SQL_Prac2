@@ -1,0 +1,516 @@
+-- 31. 가장 일찍 입사한 사원의 모든 정보를 조회한다.(SUB QUERY 이용하기)
+--  가장 일찍 입사한 사원 : ?
+SELECT *
+FROM EMPLOYEES 
+WHERE HIRE_DATE = (SELECT MIN(HIRE_DATE)
+FROM EMPLOYEES)
+;
+
+
+-- 32. 자신의 상사보다 더 많은 연봉을 받는 사원의 모든 정보를 조회한다.(SUB QUERY 이용하기)
+-- 알아야 할 것 : 자신의 상사가 연봉을 얼마나 받는가
+-- 알고싶은것 : 자신의 상사보다 더 많이 받는 사원의 정보
+SELECT *
+  FROM EMPLOYEES E
+ WHERE SALARY > (SELECT SALARY
+ 				   FROM EMPLOYEES M 
+ 				   -- 사원들의 상사의 정보 가져오는 방법 ↓↓
+ 				  WHERE E.MANAGER_ID = M.EMPLOYEE_ID) --서브쿼리에서 바깥에있는 EMPLOYEES E 참조   
+; 
+
+-- 33. 자신의 상사보다 더 일찍 입사한 사원의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES E
+ WHERE HIRE_DATE < (SELECT HIRE_DATE 
+ 					 FROM EMPLOYEES M
+ 					 WHERE E.MANAGER_ID = M.EMPLOYEE_ID)
+;
+
+-- 34. 부서아이디별 평균 연봉을 조회한다.
+SELECT AVG(SALARY) --오답
+  FROM EMPLOYEES E
+  JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID 
+ GROUP BY(D.DEPARTMENT_ID)
+ ;
+
+SELECT DEPARTMENT_ID --정답
+	 , AVG(SALARY)
+	FROM EMPLOYEES 
+	GROUP BY DEPARTMENT_ID 
+
+
+-- 35. 직무아이디별 평균 연봉, 최고연봉, 최저연봉을 조회한다.
+SELECT AVG(SALARY)
+     , MAX(SALARY)
+     , MIN(SALARY)
+  FROM EMPLOYEES E
+ GROUP BY(JOB_ID)
+ ;
+
+-- 36. 가장 많은 인센티브를 받는 사원의 모든 정보를 조회한다.
+SELECT *
+  FROM EMPLOYEES 
+ WHERE COMMISSION_PCT = (SELECT MAX(COMMISSION_PCT)
+						   FROM EMPLOYEES)
+;
+
+-- 37. 가장 적은 인센티브를 받는 사원의 연봉과 인센티브를 조회한다.
+SELECT SALARY 
+	 , COMMISSION_PCT 
+  FROM EMPLOYEES 
+ WHERE COMMISSION_PCT = (SELECT MIN(COMMISSION_PCT)
+						   FROM EMPLOYEES)
+;
+
+-- 38. 직무아이디별 사원의 수를 조회한다.
+SELECT COUNT(EMPLOYEE_ID) --오답
+  FROM EMPLOYEES E
+  JOIN JOBS J
+    ON J.JOB_ID = E.JOB_ID 
+ GROUP BY(J.JOB_ID)
+ ;
+
+
+SELECT JOB_ID -- 정답
+     , COUNT(1) --COUNT함수안에 PK보다 1 을 더 많이 쓴다
+  FROM EMPLOYEES 
+  GROUP BY JOB_ID
+;
+
+-- 39. 상사아이디별 부하직원의 수를 조회한다. 단, 부하직원이 2명 이하인 경우는 제외한다.
+SELECT COUNT(EMPLOYEE_ID) --오답
+  FROM EMPLOYEES E
+ WHERE COUNT(EMPLOYEE_ID) > 2
+ GROUP BY(MANAGER_ID)
+ ;
+
+SELECT MANAGER_ID --정답
+     , COUNT(1)
+  FROM EMPLOYEES 
+ GROUP BY MANAGER_ID 
+HAVING COUNT(1) > 2
+ ;
+
+
+-- 40. 사원이 속한 부서의 평균연봉보다 적게 받는 사원의 모든 정보를 조회한다. (SUB QUERY) --넘어가기
+-- 알아야 할 것 : 사원이 속한 부서의 평균연봉 
+-- 알고싶은것 : 사원이 속한 부서의 평균연봉보다 적게받는 사원의 정보
+SELECT *
+  FROM EMPLOYEES E
+ WHERE SALARY < (SELECT AVG(SALARY)
+					 --, DEPARTMENT_ID 
+				   FROM EMPLOYEES 
+				  WHERE DEPARTMENT_ID = (SELECT DEPARTMENT_ID
+				   						   FROM EMPLOYEES D
+				  						  WHERE D.EMPLOYEE_ID = E.EMPLOYEE_ID
+;
+ --GROUP BY DEPARTMENT_ID 
+
+-- 41. 사원이 근무하는 부서명, 이름, 성을 조회한다.
+SELECT D.DEPARTMENT_NAME 
+     , E.FIRST_NAME 
+     , E.LAST_NAME 
+  FROM EMPLOYEES E
+  JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+ ;
+
+-- 42. 2ND) 가장 적은 연봉을 받는 사원의 1ST) 부서명, 이름, 성, 연봉, 부서장 사원번호를 조회한다.
+SELECT D.DEPARTMENT_NAME 
+     , E.FIRST_NAME 
+     , E.LAST_NAME 
+     , E.SALARY 
+     , D.MANAGER_ID 
+  FROM EMPLOYEES E
+  JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+ WHERE SALARY = (SELECT MIN(SALARY)
+				   FROM EMPLOYEES)
+ ;
+
+-- 43. 상사사원번호를 중복없이 조회한다.
+SELECT DISTINCT MANAGER_ID -- DISTINCT : 중복이 제거된 고유한 값만 나오게 됨 
+  FROM EMPLOYEES 
+;
+
+-- 44. 50번 부서의 부서장의 이름, 성, 연봉을 조회한다. ????????
+-- 오답
+SELECT E.FIRST_NAME 
+	 , E.LAST_NAME 
+	 , E.SALARY 
+  FROM EMPLOYEES E
+  JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+ WHERE MANAGER_ID = 50
+ ;
+
+--정답 50번 부서의 부서장의 이름, 성, 연봉을 조회한다.
+SELECT FIRST_NAME 
+	  , LAST_NAME 
+	  , SALARY 
+  FROM EMPLOYEES
+ WHERE EMPLOYEE_ID = (SELECT MANAGER_ID
+ 						FROM DEPARTMENTS 
+ 						WHERE DEPARTMENT_ID = 50)
+ 						;
+
+
+-- 45. 부서명별 사원의 수를 조회한다.
+-- INNER JOIN 문제			
+SELECT D.DEPARTMENT_NAME 
+	 , COUNT(1)
+  FROM EMPLOYEES E
+  JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+ GROUP BY D.DEPARTMENT_NAME
+ ;
+
+-- 46. 사원의 수가 가장 많은 부서명, 사원의 수를 조회한다. ////////////////////////////////////////////
+SELECT *
+FROM (SELECT D.DEPARTMENT_NAME 
+	 , COUNT(1) EMP_COUNT
+		  FROM EMPLOYEES E
+		  JOIN DEPARTMENTS D
+		    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+		 GROUP BY D.DEPARTMENT_NAME
+		 ORDER BY EMP_COUNT DESC) DEPT_EMP_COUNT
+WHERE ROWNUM = 1
+ ;
+
+-- 방법2) 사원의수가 가장많은ID 구해보기
+SELECT D.DEPARTMENT_ID
+	 , COUNT(1) EMP_COUNT
+  FROM EMPLOYEES E
+  JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+ GROUP BY D.DEPARTMENT_NAME
+			
+
+
+
+
+
+
+--참고
+가장 많은 사원이 근무중인 부서의 모든 정보를 조회한다 (인라인뷰가 2번씩 필요할 것)
+-- 부서별 사원의 수 (부서에 사원이 존재하지 않는다면 0으로 조회한다 = 메인테이블 : 부서)
+SELECT D.*
+  FROM (-- 사원의 수로 내림차순 정렬
+		SELECT D.DEPARTMENT_ID 
+			 , COUNT(E.EMPLOYEE_ID) AS E_COUNT --COUNT집계함수에 별칭 주는 방법 : AS+별칭명 작성 (AS 생략가능) 
+		  FROM DEPARTMENTS D
+		  LEFT JOIN EMPLOYEES E
+		    ON D.DEPARTMENT_ID  = E.DEPARTMENT_ID 
+		 GROUP BY D.DEPARTMENT_ID 
+		 ORDER BY E_COUNT DESC) ORDERED_DEPT_EMP_COUNT
+ INNER JOIN DEPARTMENTS D --INLINE VIEW와 DEPARTMENTS 조인한다
+    ON D.DEPARTMENT_ID = ORDERED_DEPT_EMP_COUNT.DEPARTMENT_ID
+-- 정렬된 데이터에서 1개만 조회
+ WHERE ROWNUM = 1
+;
+
+
+
+-- 47. 사원이 없는 부서명을 조회한다. 
+-- SUB QUERY, LEFT OUTER JOIN 둘다 쓸 수 있지만, '부서명' 하나만 알면되기때문에 SUB QUERY 이용할것
+-- 풀이1
+SELECT DEPARTMENT_NAME
+  FROM DEPARTMENTS 
+ WHERE DEPARTMENT_ID NOT IN ( SELECT DISTNCT DEPARTMENT_ID
+								FROM EMPLOYEES
+							   WHERE DEPARTMENT_ID IS NOT NULL)
+								-- NOT IN, IN은 괄호안에 NULL값이 있으면 절대 안됨. (연산을 = 으로 전부 처리하기 때문에)
+							   --DEPARTMENT_ID 하나가 NULL있으므로 NULL CHECK 해줘야됨
+;
+
+-- 풀이2
+SELECT D.DEPARTMENT_NAME
+  FROM DEPARTMENTS D
+  LEFT JOIN EMPLOYEES E
+  ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+  WHERE E.EMPLOYEE_ID IS NULL
+;
+
+-- 48. 직무가 변경된 사원의 모든 정보를 조회한다.
+-- 현재직무명 : EMPLOYEES의 직무아이디와 JOBS 연결해서 JOBTITLE 가져오면 알수있음
+-- 풀이1
+SELECT *
+  FROM EMPLOYEES 
+ WHERE EMPLOYEE_ID IN (SELECT EMPLOYEE_ID
+ 						FROM JOB_HISTORY)
+--풀이2) 같은데이터 나옴 ->DISTINCT 적어주기
+SELECT DISTINCT E.*
+  FROM EMPLOYEES E
+  --JOIN JOBS NOW_J
+    --ON NOW_J.JOB_ID = E.JOB_ID 
+  LEFT JOIN JOB_HISTORY JH
+    ON E.EMPLOYEE_ID = JH.EMPLOYEE_ID 
+  --JOIN JOBS PAST_J
+    --ON PAST_J.JOB_ID = JH.JOB_ID 
+ ;
+
+-- 49. 직무가 변경된적 없는 사원의 모든 정보를 조회한다.
+-- 풀이1
+SELECT *
+  FROM EMPLOYEES 
+ WHERE EMPLOYEE_ID NOT IN (SELECT EMPLOYEE_ID
+ 						     FROM JOB_HISTORY)
+ 						
+ --풀이2) 같은데이터 나옴 ->DISTINCT 적어주기
+SELECT DISTINCT E.*
+  FROM EMPLOYEES E
+  LEFT JOIN JOB_HISTORY JH
+    ON E.EMPLOYEE_ID = JH.EMPLOYEE_ID 
+ WHERE JH.EMPLOYEE_ID IS NULL
+ 						
+--SELECT *
+--  FROM EMPLOYEES E
+--  JOIN JOBS NOW_J
+--    ON NOW_J.JOB_ID = E.JOB_ID 
+--  JOIN JOB_HISTORY JH
+--    ON E.EMPLOYEE_ID = JH.EMPLOYEE_ID 
+--  JOIN JOBS PAST_J
+--    ON PAST_J.JOB_ID = JH.JOB_ID 
+-- WHERE PAST_J.JOB_TITLE = NOW_J.JOB_TITLE
+-- ;
+
+-- 50. 직무가 변경된 사원의 과거 직무명과 현재 직무명을 조회한다.
+SELECT E.EMPLOYEE_ID --비교를 위해 추가 
+	 , PAST_J.JOB_TITLE AS NOW_JOB_TITLE
+	 , NOW_J.JOB_TITLE AS PAST_JOB_TITLE
+  FROM EMPLOYEES E
+  JOIN JOBS NOW_J
+    ON NOW_J.JOB_ID = E.JOB_ID 
+  JOIN JOB_HISTORY JH
+    ON E.EMPLOYEE_ID = JH.EMPLOYEE_ID 
+  JOIN JOBS PAST_J
+    ON PAST_J.JOB_ID = JH.JOB_ID 
+ ;
+
+-- 51. 직무가 가장 많이 변경된 부서의 이름을 조회한다.
+-- 내가 푼거
+SELECT *
+  FROM( SELECT D.DEPARTMENT_NAME
+		  FROM DEPARTMENTS D
+		  JOIN EMPLOYEES E
+		    ON D.DEPARTMENT_ID  = E.DEPARTMENT_ID 
+		  JOIN JOB_HISTORY JH
+		    ON JH.EMPLOYEE_ID = E.EMPLOYEE_ID 
+		  GROUP BY D.DEPARTMENT_NAME 
+		  ORDER BY COUNT(*) DESC)
+ WHERE ROWNUM = 1
+;
+
+-- 직무가 변경된 사원의 과거 직무명과 현재 직무명을 조회한다.
+--깃헙코드
+SELECT DEPARTMENT_NAME
+  FROM DEPARTMENTS D
+ INNER JOIN (SELECT *
+               FROM (SELECT DEPARTMENT_ID 
+                           , COUNT(1) AS DEPT_COUNT
+                        FROM JOB_HISTORY
+                      GROUP BY DEPARTMENT_ID 
+                      ORDER BY DEPT_COUNT DESC) JH
+              WHERE ROWNUM = 1) JH2
+    ON D.DEPARTMENT_ID = JH2.DEPARTMENT_ID
+;
+
+
+-- 52. 'Seattle' 에서 근무중인 사원의 이름, 성, 연봉, 부서명 을 조회한다.
+--내가푼거 ?????????질문하기 ??????
+SELECT E.FIRST_NAME 
+     , E.LAST_NAME 
+     , E.SALARY 
+     , D.DEPARTMENT_NAME 
+ FROM EMPLOYEES E
+ JOIN DEPARTMENTS D
+   ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+ JOIN LOCATIONS L
+   ON L.LOCATION_ID = D.LOCATION_ID 
+WHERE L.CITY = 'Seattle'
+;
+--정답
+SELECT E.FIRST_NAME 
+     , E.LAST_NAME 
+     , E.SALARY 
+     , D.DEPARTMENT_NAME 
+ FROM EMPLOYEES E
+ JOIN DEPARTMENTS D
+   ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+WHERE D.LOCATION_ID = (SELECT LOCATION_ID
+						FROM LOCATIONS 
+						WHERE CITY = 'Seattle')
+
+
+-- 53. 'Seattle' 에서 근무하지 않는 모든 사원의 이름, 성, 연봉, 부서명, 도시를 조회한다.
+SELECT E.FIRST_NAME 
+     , E.LAST_NAME 
+     , E.SALARY 
+     , D.DEPARTMENT_NAME 
+  FROM EMPLOYEES E
+  JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+  JOIN LOCATIONS L
+    ON L.LOCATION_ID = D.LOCATION_ID 
+ WHERE L.CITY != 'Seattle'
+;
+
+-- 54. 근무중인 사원이 가장 많은 도시와 사원의 수를 조회한다.  --INNER JOIN 쓰기
+-- 내가푼거
+SELECT L.CITY
+     , ORDERED_CITY_COUNT.E_COUNT
+  FROM ( SELECT L.CITY
+        , COUNT(E.EMPLOYEE_ID) AS E_COUNT
+	 	  FROM EMPLOYEES E
+		  JOIN DEPARTMENTS D
+		    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+		  JOIN LOCATIONS L
+		    ON L.LOCATION_ID = D.LOCATION_ID 
+		 GROUP BY L.CITY
+		 ORDER BY E_COUNT DESC) ORDERED_CITY_COUNT
+  INNER JOIN EMPLOYEES E
+    ON L.LOCATION_ID = ORDERED_CITY_COUNT.CITY
+ WHERE ROWNUM = 1
+ ;
+
+-- 정답?
+SELECT L.CITY
+	 , COUNT(E.EMPLOYEE_ID)
+  FROM EMPLOYEES E
+  JOIN DEPARTMENTS D
+    ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+  JOIN LOCATIONS L
+    ON L.LOCATION_ID = D.LOCATION_ID 
+ GROUP BY L.CITY
+
+
+
+-- 가장 많은 사원이 근무중인 부서의 모든 정보를 조회 
+SELECT D.*
+  FROM (-- 사원의 수로 내림차순 정렬
+		SELECT D.DEPARTMENT_ID 
+			 , COUNT(E.EMPLOYEE_ID) AS E_COUNT --COUNT집계함수에 별칭 주는 방법 : AS+별칭명 작성 (AS 생략가능) 
+		  FROM DEPARTMENTS D
+		  LEFT JOIN EMPLOYEES E
+		    ON D.DEPARTMENT_ID  = E.DEPARTMENT_ID 
+		 GROUP BY D.DEPARTMENT_ID 
+		 ORDER BY E_COUNT DESC) ORDERED_DEPT_EMP_COUNT
+ INNER JOIN DEPARTMENTS D --INLINE VIEW와 DEPARTMENTS 조인한다
+    ON D.DEPARTMENT_ID = ORDERED_DEPT_EMP_COUNT.DEPARTMENT_ID
+-- 정렬된 데이터에서 1개만 조회
+ WHERE ROWNUM = 1
+;
+
+
+-- 55. 근무중인 사원이 없는 도시를 조회한다. (NOT IN, IN 쓰기)
+-- 내가푼거(값안나옴)
+--SELECT L.CITY 
+-- FROM EMPLOYEES E
+-- JOIN DEPARTMENTS D
+--   ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+-- JOIN LOCATIONS L
+--   ON L.LOCATION_ID = D.LOCATION_ID 
+--WHERE E.EMPLOYEE_ID IS NULL 
+--;
+
+-- 정답
+-- 근무중인 사원이 있는 부서만 조회(IN)
+--근무중인 사원이 있는 부서를 제외한 나머지 도시 (NOT IN )
+SELECT CITY
+  FROM LOCATIONS 
+ WHERE LOCATION_ID NOT IN (SELECT LOCATION_ID 
+							  FROM DEPARTMENTS 
+							 WHERE DEPARTMENT_ID IN (SELECT DEPARTMENT_ID
+							 				 			FROM EMPLOYEES ))
+;
+
+-- 56. 연봉이 7000 에서 12000 사이인 사원이 근무중인 도시를 조회한다.
+-- 내가푼거
+SELECT L.CITY 
+ FROM EMPLOYEES E
+ JOIN DEPARTMENTS D
+   ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+ JOIN LOCATIONS L
+   ON L.LOCATION_ID = D.LOCATION_ID 
+WHERE E.SALARY BETWEEN 7000 AND 12000
+;
+
+--정답
+SELECT CITY --지역번호의 도시 조회
+  FROM LOCATIONS 
+  WHERE LOCATION_ID IN (-- 그 부서의 지역번호 조회
+						SELECT LOCATION_ID
+						  FROM DEPARTMENTS
+						 WHERE DEPARTMENT_ID IN ( --연봉이 7000에서 12000 사이인 사원이 근무중인 도시 조회
+													SELECT DISTINCT DEPARTMENT_ID
+													  FROM EMPLOYEES 
+													 WHERE SALARY BETWEEN 7000 AND 12000))
+;
+ 
+
+
+
+-- 57. 'Seattle' 에서 근무중인 사원의 '직무명'을 중복없이 조회한다.
+
+SELECT JOB_TITLE
+  FROM JOBS 
+ WHERE JOB_ID IN (SELECT JOB_ID
+  FROM EMPLOYEES 
+ WHERE DEPARTMENT_ID IN (SELECT DEPARTMENT_ID
+  FROM DEPARTMENTS 
+ WHERE LOCATION_ID IN (SELECT LOCATION_ID 
+  FROM LOCATIONS 
+ WHERE CITY = 'Seattle')))
+ ;
+
+-- 직무명 1개이므로, 서브쿼리 사용해서 풀기
+--SELECT DISTINCT D.DEPARTMENT_NAME 
+-- FROM EMPLOYEES E
+-- JOIN DEPARTMENTS D
+--   ON D.DEPARTMENT_ID = E.DEPARTMENT_ID
+-- JOIN LOCATIONS L
+--   ON L.LOCATION_ID = D.LOCATION_ID 
+--WHERE L.CITY = 'Seattle'
+--;
+
+-- 서브쿼리로 연결하기
+SELECT DISTINCT JOB_TITLE
+  FROM JOBS 
+ WHERE JOB_ID IN(SELECT JOB_ID
+				  FROM EMPLOYEES
+				 WHERE DEPARTMENT_ID IN(SELECT DEPARTMENT_ID
+										  FROM DEPARTMENTS 
+										 WHERE LOCATION_ID IN (SELECT LOCATION_ID
+															     FROM LOCATIONS 
+															    WHERE CITY = 'Seattle')))
+;
+ 
+-- 58. 사내의 최고연봉과 최저연봉의 차이를 조회한다.
+SELECT MAX(SALARY) - MIN(SALARY) AS SALARY_GAP
+FROM EMPLOYEES
+;
+
+
+
+-- 59. 이름이 'Renske' 인 사원의 연봉과 같은 연봉을 받는 사원의 모든 정보를 조회한다. 단, 'Renske' 사원은 조회에서 제외한다.
+SELECT *
+  FROM EMPLOYEES 
+ WHERE SALARY = (SELECT SALARY
+				   FROM EMPLOYEES E
+				  WHERE E.FIRST_NAME = 'Renske')
+  AND FIRST_NAME != 'Renske'
+;
+
+-- 60. 회사 전체의 평균 연봉보다 많이 받는 사원들 중 이름에 'u' 가 포함된 사원과 동일한 부서에서 근무중인 사원들의 모든 정보를 조회한다.
+-- 사원들의 모든정보 조회
+-- 부서, 사원, 연봉,
+SELECT *
+  FROM EMPLOYEES 
+ WHERE DEPARTMENT_ID IS NOT NULL 
+   AND DEPARTMENT_ID IN (SELECT DISTINCT DEPARTMENT_ID --100번이 두번 나오므로 DISTINCT 해주기 
+						   FROM EMPLOYEES E
+						  WHERE SALARY > ( SELECT AVG(SALARY)
+						  					 FROM EMPLOYEES)
+						    AND FIRST_NAME LIKE '%u%')
+;
